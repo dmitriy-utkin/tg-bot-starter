@@ -47,3 +47,12 @@ telegram:
         enabled: false
         ttl-in-min: ${REDIS_STATE_TTL:5}
 ```
+
+## How to use it?
+Just add this library to your project, fill the required props and create a config class:
+
+```java
+@Configuration
+@ComponentScan(basePackages = {"io.github.dmitriyutkin.tgbotstarter"})
+public class BotLibraryConfig {}
+```
