@@ -17,9 +17,11 @@ public class DefaultMainMenuButtonProvider implements ButtonProvider {
 
     @Override
     @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.DEBUG)
-    public List<InlineKeyboardButton> getButtons() {
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
-        buttons.add(ButtonUtil.create(DEFAULT_BUTTON_1_MAIN.getButtonText(), DEFAULT_BUTTON_1_MAIN.getStageName()));
+    public List<List<InlineKeyboardButton>> getButtons() {
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        row1.add(ButtonUtil.create(DEFAULT_BUTTON_1_MAIN.getButtonText(), DEFAULT_BUTTON_1_MAIN.getStageName()));
+        buttons.add(row1);
         return buttons;
     }
 

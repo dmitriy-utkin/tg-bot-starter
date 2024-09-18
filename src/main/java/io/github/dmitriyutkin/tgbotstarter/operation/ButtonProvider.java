@@ -5,5 +5,5 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.List;
 
 public interface ButtonProvider extends Operation {
-    List<InlineKeyboardButton> getButtons();
+    List<List<InlineKeyboardButton>> getButtons();
 }

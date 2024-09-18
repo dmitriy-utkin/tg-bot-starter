@@ -17,7 +17,7 @@ import java.util.Objects;
 @DefaultComponent
 @CommandComponent
 @RequiredArgsConstructor
-public class StartCommand implements CommandOperation {
+public class DefaultStartCommand implements CommandOperation {
 
     private final SenderService senderService;
     private final OperationRegistry operationRegistry;
@@ -37,7 +37,7 @@ public class StartCommand implements CommandOperation {
             greetings = "Hello world!";
         }
         ButtonProvider mainMenuButtonProvider = operationRegistry.getMainMenuButtonProvider();
-        List<InlineKeyboardButton> buttons = Objects.nonNull(mainMenuButtonProvider) ? mainMenuButtonProvider.getButtons() : Collections.emptyList();
+        List<List<InlineKeyboardButton>> buttons = Objects.nonNull(mainMenuButtonProvider) ? mainMenuButtonProvider.getButtons() : Collections.emptyList();
         senderService.sendButtons(chatId, greetings, buttons);
     }
 }

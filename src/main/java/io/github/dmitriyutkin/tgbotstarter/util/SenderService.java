@@ -1,6 +1,6 @@
 package io.github.dmitriyutkin.tgbotstarter.util;
 
-import io.github.dmitriyutkin.tgbotstarter.config.BotConfig;
+import io.github.dmitriyutkin.tgbotstarter.config.DefaultBotConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -38,10 +38,9 @@ public class SenderService {
         }
     }
 
-    public void sendButtons(String chatId, String message, List<InlineKeyboardButton> buttons, MarkupType messageType) {
+    public void sendButtons(String chatId, String message, List<List<InlineKeyboardButton>> buttons, MarkupType messageType) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(buttons));
-
+        markup.setKeyboard(buttons);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText(message);
@@ -56,12 +55,12 @@ public class SenderService {
         }
     }
 
-    public void sendButtons(String chatId, String message, List<InlineKeyboardButton> buttons) {
+    public void sendButtons(String chatId, String message, List<List<InlineKeyboardButton>> buttons) {
         sendButtons(chatId, message, buttons, MarkupType.NONE);
     }
 
     private void executeMessage(SendMessage sendMessage) throws TelegramApiException {
-        applicationContext.getBean(BotConfig.class).execute(sendMessage);
+        applicationContext.getBean(DefaultBotConfig.class).execute(sendMessage);
     }
 }
 

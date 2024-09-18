@@ -29,7 +29,7 @@ import java.util.Objects;
 @Configuration
 @RequiredArgsConstructor
 @ConditionalOnBean(OperationRegistry.class)
-public class BotConfig extends TelegramLongPollingBot {
+public class DefaultBotConfig extends TelegramLongPollingBot {
 
     @Value("${telegram.bot.username}")
     private String botUserName;

@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Import;
 
 @Slf4j
 @Configuration
-@Import({BotConfig.class, OperationRegistry.class, RedisStateManagerConfig.class, InMemoryStateManagerConfig.class})
+@Import({DefaultBotConfig.class, OperationRegistry.class, RedisStateManagerConfig.class, InMemoryStateManagerConfig.class})
 public class TgBotStarterAutoconfiguration {
 }

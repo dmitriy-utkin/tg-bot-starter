@@ -7,22 +7,25 @@ import io.github.dmitriyutkin.tgbotstarter.util.MarkupType;
 import io.github.dmitriyutkin.tgbotstarter.util.SenderService;
 import lombok.RequiredArgsConstructor;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 @CommandComponent
 @RequiredArgsConstructor
 @DefaultComponent
-public class EchoCommand implements CommandOperation {
+public class DefaultNowCommand implements CommandOperation {
 
     private final SenderService senderService;
 
     @Override
     public String getOperationIdentifier() {
-        return DefaultCommandName.DEFAULT_ECHO_COMMAND.getCommandName();
+        return DefaultCommandName.DEFAULT_NOW_COMMAND.getCommandName();
     }
 
     @Override
     @LoggableAspect(type = LoggableType.COMMAND_OP, level = LoggableLevelType.DEBUG)
     public void handle(String chatId, String input) {
-        senderService.sendMessage(chatId, String.format("You said: %s", input), MarkupType.NONE);
+        String currentTime = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
+        senderService.sendMessage(chatId, String.format("Current time: %s", currentTime), MarkupType.NONE);
     }
 }
-

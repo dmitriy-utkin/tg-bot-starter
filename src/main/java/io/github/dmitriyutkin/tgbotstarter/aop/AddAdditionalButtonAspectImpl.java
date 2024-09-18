@@ -31,8 +31,8 @@ public class AddAdditionalButtonAspectImpl {
         if (Objects.isNull(additionalButtonsProvider)) {
             throw new IllegalStateException(String.format("Button provider name is incorrect: %s (nothing found by this name)", addAdditionalButtonAspect.buttonProviderName()));
         }
-        List<InlineKeyboardButton> buttons = (List<InlineKeyboardButton>) joinPoint.proceed();
-        List<InlineKeyboardButton> additionalButtons = additionalButtonsProvider.getButtons();
+        List<List<InlineKeyboardButton>> buttons = (List<List<InlineKeyboardButton>>) joinPoint.proceed();
+        List<List<InlineKeyboardButton>> additionalButtons = additionalButtonsProvider.getButtons();
         buttons.addAll(additionalButtons);
         return buttons;
     }
