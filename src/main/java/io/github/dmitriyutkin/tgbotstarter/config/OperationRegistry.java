@@ -29,13 +29,15 @@ public class OperationRegistry {
     @Getter
     private ButtonProvider mainMenuButtonProvider;
 
-    @Value("${telegram.component-package}")
-    private String packageName;
+    private final String DEFAULT_PACKAGE_NAME = "io.github.dmitriyutkin.tgbotstarter";
+
+    @Value("${telegram.component-package:null}")
+    private String componentPackage;
 
     @Value("${telegram.default-comps.create:true}")
     private Boolean withDefaultComps;
 
-    @Value("${telegram.default-comps.exclude-commands:[]}")
+    @Value("${telegram.default-comps.exclude-commands:}")
     private List<String> excludeCommands;
 
     public OperationRegistry(ApplicationContext applicationContext) {
@@ -69,26 +71,9 @@ public class OperationRegistry {
 
     @PostConstruct
     public void init() {
-        registryAllAnnotatedClasses();
-    }
-
-    @LogPerformanceSamplerAspect
-    private void registryAllAnnotatedClasses() {
         log.info("WithDefaultComps parameter is {}", withDefaultComps);
-
-        Reflections reflections = new Reflections(packageName);
-
-        List<Class<?>> mainMenuAnnotatedClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(MainMenuButtons.class));
-        if (mainMenuAnnotatedClasses.size() > 1) {
-            throw new Error("Application cannot contain more than one MainMenuButtons");
-        } else if (mainMenuAnnotatedClasses.size() == 1) {
-            mainMenuButtonProvider = getMainMenuButtonProvider(mainMenuAnnotatedClasses.get(0));
-        }
-        reflections.getTypesAnnotatedWith(ButtonComponent.class).forEach(this::registerButtonProvider);
-        reflections.getTypesAnnotatedWith(CommandComponent.class).forEach(this::registerCommandOperation);
-        reflections.getTypesAnnotatedWith(MessageComponent.class).forEach(this::registerMessageOperation);
-        reflections.getTypesAnnotatedWith(CallbackComponent.class).forEach(this::registerCallbackQueryOperation);
-
+        registryAllAnnotatedClasses(DEFAULT_PACKAGE_NAME);
+        registryAllAnnotatedClasses(componentPackage);
         log.info("""
                          \nAll operations have been registered:
                          \t-> ButtonComponent: {} realisations;
@@ -102,6 +87,27 @@ public class OperationRegistry {
                  messageOperations.size(),
                  callbackQueryOperations.size(),
                  Objects.nonNull(mainMenuButtonProvider) ? "REGISTERED" : "NOT DEFINED");
+    }
+
+    @LogPerformanceSamplerAspect
+    private void registryAllAnnotatedClasses(String packageName) {
+        if (Objects.isNull(packageName)) {
+            log.info("Package name is null, initialization is skipped");
+            return;
+        }
+
+        Reflections reflections = new Reflections(packageName);
+
+        List<Class<?>> mainMenuAnnotatedClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(MainMenuButtons.class));
+        if (mainMenuAnnotatedClasses.size() > 1) {
+            throw new Error("Application cannot contain more than one MainMenuButtons");
+        } else if (mainMenuAnnotatedClasses.size() == 1) {
+            mainMenuButtonProvider = getMainMenuButtonProvider(mainMenuAnnotatedClasses.get(0));
+        }
+        reflections.getTypesAnnotatedWith(ButtonComponent.class).forEach(this::registerButtonProvider);
+        reflections.getTypesAnnotatedWith(CommandComponent.class).forEach(this::registerCommandOperation);
+        reflections.getTypesAnnotatedWith(MessageComponent.class).forEach(this::registerMessageOperation);
+        reflections.getTypesAnnotatedWith(CallbackComponent.class).forEach(this::registerCallbackQueryOperation);
     }
 
     @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.DEBUG)

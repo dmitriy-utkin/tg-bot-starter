@@ -27,7 +27,7 @@ public class StartCommand implements CommandOperation {
 
     @Override
     public String getOperationIdentifier() {
-        return DefaultCommandName.START_COMMAND.getCommandName();
+        return DefaultCommandName.DEFAULT_START_COMMAND.getCommandName();
     }
 
     @Override

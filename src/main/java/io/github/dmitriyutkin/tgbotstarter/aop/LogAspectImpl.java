@@ -2,6 +2,7 @@ package io.github.dmitriyutkin.tgbotstarter.aop;
 
 import io.github.dmitriyutkin.tgbotstarter.anotation.LogPerformanceSamplerAspect;
 import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableAspect;
+import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableLevelType;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -28,13 +29,7 @@ public class LogAspectImpl {
                                        classSimpleName,
                                        methodName,
                                        Arrays.toString(args));
-        switch (loggableAspect.level()) {
-            case INFO -> log.info(message);
-            case WARN -> log.warn(message);
-            case ERROR -> log.error(message);
-            case DEBUG -> log.debug(message);
-            case TRACE -> log.trace(message);
-        }
+        createLog(loggableAspect.level(), message);
     }
 
     @Around("@annotation(logPerformanceSamplerAspect)")
@@ -47,7 +42,19 @@ public class LogAspectImpl {
         Object proceed = joinPoint.proceed();
         stowWatch.stop();
 
-        log.info("PerformanceSampler | {}#{} - {} ms", classSimpleName, methodName, stowWatch.getTotalTimeMillis());
+        String message = String.format("PerformanceSampler | %s#%s - %d ms", classSimpleName, methodName, stowWatch.getTotalTimeMillis());
+        createLog(logPerformanceSamplerAspect.level(), message);
+
         return proceed;
+    }
+
+    private static void createLog(LoggableLevelType level, String message) {
+        switch (level) {
+            case INFO -> log.info(message);
+            case WARN -> log.warn(message);
+            case ERROR -> log.error(message);
+            case DEBUG -> log.debug(message);
+            case TRACE -> log.trace(message);
+        }
     }
 }

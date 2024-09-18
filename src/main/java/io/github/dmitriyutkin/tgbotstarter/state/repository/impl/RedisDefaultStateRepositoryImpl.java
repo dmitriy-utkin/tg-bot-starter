@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -16,7 +15,7 @@ public class RedisDefaultStateRepositoryImpl implements DefaultStateRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${telegram.bot.state.redis.ttl-in-min}")
+    @Value("${telegram.bot.state.redis.ttl-in-min:5}")
     private Long stateTtl;
 
     @Override
@@ -40,10 +39,6 @@ public class RedisDefaultStateRepositoryImpl implements DefaultStateRepository {
     }
 
     private void saveWithExpireTime(String chatId, State state) {
-        if (Objects.isNull(stateTtl)) {
-            stateTtl = 5L;
-            log.warn("State ttl was equals to null, it was set to '{}' minutes", stateTtl);
-        }
         redisTemplate.opsForValue().set(chatId, state);
         redisTemplate.expire(chatId, stateTtl, TimeUnit.MINUTES);
     }

@@ -16,7 +16,7 @@ public class EchoCommand implements CommandOperation {
 
     @Override
     public String getOperationIdentifier() {
-        return DefaultCommandName.ECHO_COMMAND.getCommandName();
+        return DefaultCommandName.DEFAULT_ECHO_COMMAND.getCommandName();
     }
 
     @Override

@@ -19,7 +19,7 @@ public class NowCommand implements CommandOperation {
 
     @Override
     public String getOperationIdentifier() {
-        return DefaultCommandName.NOW_COMMAND.getCommandName();
+        return DefaultCommandName.DEFAULT_NOW_COMMAND.getCommandName();
     }
 
     @Override

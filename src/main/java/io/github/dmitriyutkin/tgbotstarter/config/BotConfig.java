@@ -83,13 +83,14 @@ public class BotConfig extends TelegramLongPollingBot {
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String input = update.getMessage().getText();
             if (input.startsWith("/")) {
-                String command = input.split(" ").length == 1 ? input : input.substring(0, input.indexOf(" "));
+                int inputLength = input.split(" ").length;
+                String command = inputLength == 1 ? input : input.substring(0, input.indexOf(" "));
                 CommandOperation commandOperation = registry.getCommandOperation(command);
                 if (Objects.nonNull(commandOperation)) {
-                    String inputMessage = input.split(" ").length == 1 ? "" : input.substring(input.indexOf(" ") + 1);
+                    String inputMessage = inputLength == 1 ? "" : input.substring(input.indexOf(" ") + 1);
                     commandOperation.handle(chatId, inputMessage);
                 } else {
-                    log.warn("Command operation '{}' is not found", input.substring(input.indexOf(" ")));
+                    log.warn("Command operation '{}' is not found", input);
                     sendUnrecognizedMessage(chatId, input);
                 }
             } else {

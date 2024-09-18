@@ -20,6 +20,10 @@ public class SenderService {
 
     private final ApplicationContext applicationContext;
 
+    public void sendMessage(String chatId, String message) {
+        sendMessage(chatId, message, MarkupType.NONE);
+    }
+
     public void sendMessage(String chatId, String message, MarkupType type) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
@@ -34,7 +38,7 @@ public class SenderService {
         }
     }
 
-    public void sendButtons(String chatId, String message, List<InlineKeyboardButton> buttons) {
+    public void sendButtons(String chatId, String message, List<InlineKeyboardButton> buttons, MarkupType messageType) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(List.of(buttons));
 
@@ -42,12 +46,18 @@ public class SenderService {
         sendMessage.setChatId(chatId);
         sendMessage.setText(message);
         sendMessage.setReplyMarkup(markup);
-
+        if (Objects.nonNull(messageType.getParseModeName())) {
+            sendMessage.setParseMode(messageType.getParseModeName());
+        }
         try {
             executeMessage(sendMessage);
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
+    }
+
+    public void sendButtons(String chatId, String message, List<InlineKeyboardButton> buttons) {
+        sendButtons(chatId, message, buttons, MarkupType.NONE);
     }
 
     private void executeMessage(SendMessage sendMessage) throws TelegramApiException {
