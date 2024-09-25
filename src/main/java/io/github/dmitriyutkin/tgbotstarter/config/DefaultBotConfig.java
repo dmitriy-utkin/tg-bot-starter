@@ -1,9 +1,8 @@
 package io.github.dmitriyutkin.tgbotstarter.config;
 
-import io.github.dmitriyutkin.tgbotstarter.anotation.LogPerformanceSamplerAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableType;
-import io.github.dmitriyutkin.tgbotstarter.defaults.DefaultMessageName;
+import io.github.dmitriyutkin.tgbotstarter.aop.LogPerformanceSamplerAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.LoggableAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableType;
 import io.github.dmitriyutkin.tgbotstarter.operation.CallbackQueryOperation;
 import io.github.dmitriyutkin.tgbotstarter.operation.CommandOperation;
 import io.github.dmitriyutkin.tgbotstarter.operation.MessageOperation;
@@ -57,13 +56,7 @@ public class DefaultBotConfig extends TelegramLongPollingBot {
     @LogPerformanceSamplerAspect
     public void onUpdateReceived(Update update) {
         String chatId = update.hasCallbackQuery() ? String.valueOf(update.getCallbackQuery().getMessage().getChatId()) : String.valueOf(update.getMessage().getChatId());
-        if (update.hasCallbackQuery() && defaultStateManager.existsByChatIdAndStageNum(chatId, 1)) {
-            if (!Objects.equals(defaultStateManager.getByChatId(chatId).getStateStageInfo().get(1), update.getCallbackQuery().getData())) {
-                defaultStateManager.removeByChatId(chatId);
-                log.info("Removed default state for chatId: {} due to mismatching of the 1st stage name", chatId);
-            }
-        }
-        if (update.hasCallbackQuery() || defaultStateManager.existsByChatIdAndStageNum(chatId, 1)) {
+        if (update.hasCallbackQuery() || defaultStateManager.isExists(chatId, 1)) {
             State currentState = defaultStateManager.getByChatId(chatId);
             String callBackOperationName;
             String callBackData = update.hasCallbackQuery() ? update.getCallbackQuery().getData() : update.getMessage().getText();
@@ -75,10 +68,10 @@ public class DefaultBotConfig extends TelegramLongPollingBot {
             }
             CallbackQueryOperation callbackQueryOperation = registry.getCallbackQueryOperation(callBackOperationName);
             if (Objects.nonNull(callbackQueryOperation)) {
-                callbackQueryOperation.handle(chatId, callBackData);
+                callbackQueryOperation.handle(update);
             } else {
                 log.warn("CallbackQuery '{}' is not found", callBackOperationName);
-                sendUnrecognizedMessage(chatId, callBackData);
+                trySendUnprocessableMessageResponse(update);
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String input = update.getMessage().getText();
@@ -87,20 +80,19 @@ public class DefaultBotConfig extends TelegramLongPollingBot {
                 String command = inputLength == 1 ? input : input.substring(0, input.indexOf(" "));
                 CommandOperation commandOperation = registry.getCommandOperation(command);
                 if (Objects.nonNull(commandOperation)) {
-                    String inputMessage = inputLength == 1 ? "" : input.substring(input.indexOf(" ") + 1);
-                    commandOperation.handle(chatId, inputMessage);
+                    commandOperation.handle(update);
                 } else {
                     log.warn("Command operation '{}' is not found", input);
-                    sendUnrecognizedMessage(chatId, input);
+                    trySendUnprocessableMessageResponse(update);
                 }
             } else {
                 MessageOperation messageOperation = registry.getMessageOperation(input);
-
                 if (Objects.nonNull(messageOperation)) {
-                    messageOperation.handle(chatId, input);
+                    messageOperation.handle(update);
+                } else if (registry.isAnyMessagesHandlerExists()) {
+                    registry.getAnyMessagesHandler().handle(update);
                 } else {
-                    log.warn("Message operation '{}' is not handled", input);
-                    sendUnrecognizedMessage(chatId, input);
+                    trySendUnprocessableMessageResponse(update);
                 }
             }
         }
@@ -116,7 +108,10 @@ public class DefaultBotConfig extends TelegramLongPollingBot {
         return botToken;
     }
 
-    private void sendUnrecognizedMessage(String chatId, String input) {
-        registry.getMessageOperation(DefaultMessageName.UNRECOGNIZED_INPUT.name()).handle(chatId, input);
+    private void trySendUnprocessableMessageResponse(Update update) {
+        log.warn("Message operation '{}' is not handled", update.getMessage().getText());
+        if (registry.isUnprocessableMessageHandlerExists()) {
+            registry.getUnprocessableMessageHandler().handle(update);
+        }
     }
 }

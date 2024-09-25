@@ -1,9 +1,9 @@
 package io.github.dmitriyutkin.tgbotstarter.state.service.impl;
 
-import io.github.dmitriyutkin.tgbotstarter.anotation.LogPerformanceSamplerAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableLevelType;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableType;
+import io.github.dmitriyutkin.tgbotstarter.aop.LogPerformanceSamplerAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.LoggableAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableLevelType;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableType;
 import io.github.dmitriyutkin.tgbotstarter.state.model.State;
 import io.github.dmitriyutkin.tgbotstarter.state.repository.DefaultStateRepository;
 import io.github.dmitriyutkin.tgbotstarter.state.service.DefaultStateManager;
@@ -55,7 +55,7 @@ public class DefaultStateManagerImpl implements DefaultStateManager {
     @Override
     @LogPerformanceSamplerAspect
     @LoggableAspect(type = LoggableType.OTHER, level = LoggableLevelType.DEBUG)
-    public boolean existsByChatIdAndStageNum(String chatId, Integer stageNum) {
+    public boolean isExists(String chatId, Integer stageNum) {
         State state = getByChatId(chatId);
         return Objects.nonNull(state) && state.getStateStageInfo().containsKey(stageNum);
     }

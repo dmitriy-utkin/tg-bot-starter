@@ -1,4 +1,4 @@
-package io.github.dmitriyutkin.tgbotstarter.anotation;
+package io.github.dmitriyutkin.tgbotstarter.aop.props;
 
 public enum LoggableLevelType {
     ERROR,

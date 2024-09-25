@@ -1,4 +1,4 @@
-package io.github.dmitriyutkin.tgbotstarter.anotation;
+package io.github.dmitriyutkin.tgbotstarter.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,8 +1,8 @@
-package io.github.dmitriyutkin.tgbotstarter.anotation;
+package io.github.dmitriyutkin.tgbotstarter.anotation.core;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DefaultComponent {
+public @interface UnprocessableMessageHandler {
 }

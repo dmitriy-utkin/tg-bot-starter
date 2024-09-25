@@ -1,6 +1,13 @@
 package io.github.dmitriyutkin.tgbotstarter.config;
 
-import io.github.dmitriyutkin.tgbotstarter.anotation.*;
+import io.github.dmitriyutkin.tgbotstarter.anotation.comp.*;
+import io.github.dmitriyutkin.tgbotstarter.anotation.core.AnyMessageHandler;
+import io.github.dmitriyutkin.tgbotstarter.anotation.core.MainMenuButtons;
+import io.github.dmitriyutkin.tgbotstarter.anotation.core.UnprocessableMessageHandler;
+import io.github.dmitriyutkin.tgbotstarter.aop.LogPerformanceSamplerAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.LoggableAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableLevelType;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableType;
 import io.github.dmitriyutkin.tgbotstarter.operation.ButtonProvider;
 import io.github.dmitriyutkin.tgbotstarter.operation.CallbackQueryOperation;
 import io.github.dmitriyutkin.tgbotstarter.operation.CommandOperation;
@@ -12,7 +19,6 @@ import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -29,6 +35,12 @@ public class OperationRegistry {
     @Getter
     private ButtonProvider mainMenuButtonProvider;
 
+    @Getter
+    private MessageOperation unprocessableMessageHandler;
+
+    @Getter
+    private MessageOperation anyMessagesHandler;
+
     private final String DEFAULT_PACKAGE_NAME = "io.github.dmitriyutkin.tgbotstarter";
 
     @Value("${telegram.component-package:null}")
@@ -37,8 +49,6 @@ public class OperationRegistry {
     @Value("${telegram.default-comps.create:true}")
     private Boolean withDefaultComps;
 
-    @Value("${telegram.default-comps.exclude-commands:}")
-    private List<String> excludeCommands;
 
     public OperationRegistry(ApplicationContext applicationContext) {
         buttonProviders = new HashMap<>();
@@ -49,24 +59,48 @@ public class OperationRegistry {
         mainMenuButtonProvider = null;
     }
 
-    @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.DEBUG)
+    @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.TRACE)
     public ButtonProvider getButtonProvider(String name) {
         return buttonProviders.get(name);
     }
 
-    @LoggableAspect(type = LoggableType.COMMAND_OP, level = LoggableLevelType.DEBUG)
+    @LoggableAspect(type = LoggableType.COMMAND_OP, level = LoggableLevelType.TRACE)
     public CommandOperation getCommandOperation(String name) {
         return commandOperations.get(name);
     }
 
-    @LoggableAspect(type = LoggableType.MESSAGE_OP, level = LoggableLevelType.DEBUG)
+    @LoggableAspect(type = LoggableType.MESSAGE_OP, level = LoggableLevelType.TRACE)
     public MessageOperation getMessageOperation(String name) {
         return messageOperations.get(name);
     }
 
-    @LoggableAspect(type = LoggableType.CALLBACK_QUERY_OP, level = LoggableLevelType.DEBUG)
+    @LoggableAspect(type = LoggableType.CALLBACK_QUERY_OP, level = LoggableLevelType.TRACE)
     public CallbackQueryOperation getCallbackQueryOperation(String name) {
         return callbackQueryOperations.get(name);
+    }
+
+    public List<ButtonProvider> getAllButtonProviders() {
+        return new ArrayList<>(buttonProviders.values());
+    }
+
+    public List<CommandOperation> getAllCommandOperations() {
+        return new ArrayList<>(commandOperations.values());
+    }
+
+    public List<MessageOperation> getAllMessageOperations() {
+        return new ArrayList<>(messageOperations.values());
+    }
+
+    public List<CallbackQueryOperation> getAllCallbackOperations() {
+        return new ArrayList<>(callbackQueryOperations.values());
+    }
+
+    public boolean isUnprocessableMessageHandlerExists() {
+        return Objects.nonNull(unprocessableMessageHandler);
+    }
+
+    public boolean isAnyMessagesHandlerExists() {
+        return Objects.nonNull(anyMessagesHandler);
     }
 
     @PostConstruct
@@ -98,12 +132,9 @@ public class OperationRegistry {
 
         Reflections reflections = new Reflections(packageName);
 
-        List<Class<?>> mainMenuAnnotatedClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(MainMenuButtons.class));
-        if (mainMenuAnnotatedClasses.size() > 1) {
-            throw new Error("Application cannot contain more than one MainMenuButtons");
-        } else if (mainMenuAnnotatedClasses.size() == 1) {
-            mainMenuButtonProvider = getMainMenuButtonProvider(mainMenuAnnotatedClasses.get(0));
-        }
+        setMainMenuButtonProvider(reflections);
+        setUnprocessableMessageHandler(reflections);
+        setAnyMessageHandler(reflections);
         reflections.getTypesAnnotatedWith(ButtonComponent.class).forEach(this::registerButtonProvider);
         reflections.getTypesAnnotatedWith(CommandComponent.class).forEach(this::registerCommandOperation);
         reflections.getTypesAnnotatedWith(MessageComponent.class).forEach(this::registerMessageOperation);
@@ -111,9 +142,39 @@ public class OperationRegistry {
     }
 
     @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.DEBUG)
-    private ButtonProvider getMainMenuButtonProvider(Class<?> clazz) {
-        log.debug("Try to register main menu button provider for {}", clazz.getSimpleName());
-        return validateByDefaultProperty(clazz) ? (ButtonProvider) applicationContext.getBean(clazz) : null;
+    private void setMainMenuButtonProvider(Reflections reflections) {
+        List<Class<?>> mainMenuAnnotatedClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(MainMenuButtons.class));
+        if (mainMenuAnnotatedClasses.size() > 1) {
+            throw new Error("Application cannot contain more than one MainMenuButtons");
+        } else if (mainMenuAnnotatedClasses.size() == 1) {
+            Class<?> clazz = mainMenuAnnotatedClasses.get(0);
+            log.debug("Try to register main menu button provider for {}", clazz.getSimpleName());
+            mainMenuButtonProvider = validateByDefaultProperty(clazz) ? (ButtonProvider) applicationContext.getBean(clazz) : null;
+        }
+    }
+
+    @LoggableAspect(type = LoggableType.MESSAGE_OP, level = LoggableLevelType.DEBUG)
+    private void setUnprocessableMessageHandler(Reflections reflections) {
+        List<Class<?>> unprocessableMessageHandlerClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(UnprocessableMessageHandler.class));
+        if (unprocessableMessageHandlerClasses.size() > 1) {
+            throw new Error("Application cannot contain more than one UnprocessableMessageHandler");
+        } else if (unprocessableMessageHandlerClasses.size() == 1) {
+            Class<?> clazz = unprocessableMessageHandlerClasses.get(0);
+            log.debug("Try to register unprocessable message handler for {}", clazz.getSimpleName());
+            unprocessableMessageHandler = validateByDefaultProperty(clazz) ? (MessageOperation) applicationContext.getBean(clazz) : null;
+        }
+    }
+
+    @LoggableAspect(type = LoggableType.MESSAGE_OP, level = LoggableLevelType.DEBUG)
+    private void setAnyMessageHandler(Reflections reflections) {
+        List<Class<?>> unprocessableMessageHandlerClasses = new ArrayList<>(reflections.getTypesAnnotatedWith(AnyMessageHandler.class));
+        if (unprocessableMessageHandlerClasses.size() > 1) {
+            throw new Error("Application cannot contain more than one AnyMessageHandler");
+        } else if (unprocessableMessageHandlerClasses.size() == 1) {
+            Class<?> clazz = unprocessableMessageHandlerClasses.get(0);
+            log.debug("Try to register any message handler for {}", clazz.getSimpleName());
+            anyMessagesHandler = validateByDefaultProperty(clazz) ? (MessageOperation) applicationContext.getBean(clazz) : null;
+        }
     }
 
     @LoggableAspect(type = LoggableType.BUTTON_OP, level = LoggableLevelType.DEBUG)
@@ -127,13 +188,10 @@ public class OperationRegistry {
 
     @LoggableAspect(type = LoggableType.COMMAND_OP, level = LoggableLevelType.DEBUG)
     private void registerCommandOperation(Class<?> clazz) {
-        if (validateByDefaultProperty(clazz) || !CollectionUtils.isEmpty(excludeCommands)) {
+        if (validateByDefaultProperty(clazz)) {
             log.debug("Try to register command operation for {}", clazz.getSimpleName());
             CommandOperation operation = (CommandOperation) applicationContext.getBean(clazz);
-            boolean isExcludeCommand = CollectionUtils.isEmpty(excludeCommands) || excludeCommands.contains(operation.getOperationIdentifier());
-            if (isExcludeCommand) {
-                commandOperations.put(operation.getOperationIdentifier(), operation);
-            }
+            commandOperations.put(operation.getOperationIdentifier(), operation);
         }
     }
 

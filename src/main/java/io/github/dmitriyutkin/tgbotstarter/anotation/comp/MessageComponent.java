@@ -1,4 +1,4 @@
-package io.github.dmitriyutkin.tgbotstarter.anotation;
+package io.github.dmitriyutkin.tgbotstarter.anotation.comp;
 
 import org.springframework.stereotype.Component;
 
@@ -7,5 +7,5 @@ import java.lang.annotation.RetentionPolicy;
 
 @Component
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CommandComponent {
+public @interface MessageComponent {
 }

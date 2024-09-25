@@ -1,4 +1,6 @@
-package io.github.dmitriyutkin.tgbotstarter.anotation;
+package io.github.dmitriyutkin.tgbotstarter.aop;
+
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableLevelType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

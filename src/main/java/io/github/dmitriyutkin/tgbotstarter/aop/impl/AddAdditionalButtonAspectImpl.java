@@ -1,6 +1,6 @@
-package io.github.dmitriyutkin.tgbotstarter.aop;
+package io.github.dmitriyutkin.tgbotstarter.aop.impl;
 
-import io.github.dmitriyutkin.tgbotstarter.anotation.AddAdditionalButtonAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.AddAdditionalButtonAspect;
 import io.github.dmitriyutkin.tgbotstarter.config.OperationRegistry;
 import io.github.dmitriyutkin.tgbotstarter.operation.ButtonProvider;
 import lombok.RequiredArgsConstructor;

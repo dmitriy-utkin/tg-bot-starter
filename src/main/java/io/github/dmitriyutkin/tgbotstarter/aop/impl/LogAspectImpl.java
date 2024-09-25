@@ -1,8 +1,8 @@
-package io.github.dmitriyutkin.tgbotstarter.aop;
+package io.github.dmitriyutkin.tgbotstarter.aop.impl;
 
-import io.github.dmitriyutkin.tgbotstarter.anotation.LogPerformanceSamplerAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableAspect;
-import io.github.dmitriyutkin.tgbotstarter.anotation.LoggableLevelType;
+import io.github.dmitriyutkin.tgbotstarter.aop.LogPerformanceSamplerAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.LoggableAspect;
+import io.github.dmitriyutkin.tgbotstarter.aop.props.LoggableLevelType;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
